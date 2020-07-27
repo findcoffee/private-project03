@@ -8,16 +8,13 @@ export interface DetailParams {
   id: string;
 }
 
-const Detail = ({ match, history }: RouteComponentProps<DetailParams>) => {
+const Detail = ({ match }: RouteComponentProps<DetailParams>) => {
   const token = useToken();
   if (token === null) {
     return <Redirect to="/signin" />;
   }
 
-  const goBack = (() => {
-    history.goBack();
-  });
-  return <DetailContainer id={match.params.id} goBack={goBack} />;
+  return <DetailContainer id={match.params.id} />;
 };
 
 export default Detail;

@@ -9,6 +9,7 @@ const Add = () => {
   if (token === null) {
     return <Redirect to="/signin" />;
   }
+
   return <AddContainer />;
 };
 

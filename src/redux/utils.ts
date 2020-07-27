@@ -6,5 +6,5 @@ export function getTokenFromState(state: RootState): string | null {
 }
 
 export function getBooksFromState(state: RootState): BookResType[] | null {
-  return state.books.books.data;
+  return state.books.books.books;
 }

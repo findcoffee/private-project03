@@ -4,18 +4,20 @@ import TextArea from 'antd/lib/input/TextArea';
 import { FormOutlined } from '@ant-design/icons';
 
 import Layout from './Layout';
-import { BookResType } from '../types';
+import { BookResType, BookReqType } from '../types';
 import styles from './Edit.module.css';
 
 interface EditProps {
   book: BookResType | undefined | null;
   loading: boolean;
   logout: () => void;
+  edit: (book: BookReqType, id: number) => void;
+  goBack: () => void;
 }
 
 // [project] 컨테이너에 작성된 함수를 컴포넌트에서 이용했다.
 // [project] BookResType 의 응답 값을 이용하여, Edit 컴포넌트를 완성했다.
-const Edit: React.FC<EditProps> = ({ book, loading, logout }) => {
+const Edit: React.FC<EditProps> = ({ book, loading, logout, edit, goBack }) => {
   const titleRef = useRef<Input>(null);
   const messageRef = useRef<TextArea>(null);
   const authorRef = useRef<Input>(null);
@@ -36,6 +38,7 @@ const Edit: React.FC<EditProps> = ({ book, loading, logout }) => {
   return (
     <Layout>
       <PageHeader
+        onBack={goBack}
         title={
           <div>
             <FormOutlined /> Edit Book
@@ -65,7 +68,7 @@ const Edit: React.FC<EditProps> = ({ book, loading, logout }) => {
           <Input
             placeholder="Title"
             ref={titleRef}
-            defaultValue={'{book.title}' || ''}
+            defaultValue={book.title || ''}
             className={styles.input}
           />
         </div>
@@ -78,7 +81,7 @@ const Edit: React.FC<EditProps> = ({ book, loading, logout }) => {
             rows={4}
             placeholder="Comment"
             ref={messageRef}
-            defaultValue={'{book.message}' || ''}
+            defaultValue={book.message || ''}
             className={styles.input}
             style={{ minHeight: 100 }}
           />
@@ -88,7 +91,7 @@ const Edit: React.FC<EditProps> = ({ book, loading, logout }) => {
           <Input
             placeholder="Author"
             ref={authorRef}
-            defaultValue={'{book.author}' || ''}
+            defaultValue={book.author || ''}
             className={styles.input}
           />
         </div>
@@ -97,7 +100,7 @@ const Edit: React.FC<EditProps> = ({ book, loading, logout }) => {
           <Input
             placeholder="URL"
             ref={urlRef}
-            defaultValue={'{book.url}' || ''}
+            defaultValue={book.url || ''}
             className={styles.input}
           />
         </div>
@@ -129,6 +132,8 @@ const Edit: React.FC<EditProps> = ({ book, loading, logout }) => {
     ) {
       messageDialog.error('Please fill out all inputs');
       return;
+    } else {
+      edit({ title, author, message, url }, book!.bookId);
     }
   }
 };

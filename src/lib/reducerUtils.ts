@@ -1,8 +1,9 @@
 import { AnyAction } from 'redux';
 import { getType, AsyncActionCreatorBuilder } from 'typesafe-actions';
+import { T } from 'antd/lib/upload/utils';
 
 export type AsyncState<T, E = any> = {
-  data: T[] | null;
+  books: T[] | null;
   loading: boolean;
   error: E | null;
 };
@@ -10,56 +11,59 @@ export type AsyncState<T, E = any> = {
 export const asyncState = {
   initial: <T, E = any>(initialData?: T[]): AsyncState<T, E> => ({
     loading: false,
-    data: initialData || null,
-    error: null
+    books: initialData || null,
+    error: null,
   }),
-  load: <T, E = any>(data?: T[]): AsyncState<T, E> => ({
+  load: <T, E = any>(books?: T[]): AsyncState<T, E> => ({
     loading: true,
-    data: data || null,
-    error: null
+    books: books || null,
+    error: null,
   }),
-  success: <T, E = any>(data: T[]): AsyncState<T, E> => ({
+  success: <T, E = any>(books: T[]): AsyncState<T, E> => ({
     loading: false,
-    data,
-    error: null
+    books,
+    error: null,
   }),
   error: <T, E>(error: E): AsyncState<T, E> => ({
     loading: false,
-    data: null,
-    error: error
-  })
+    books: null,
+    error: error,
+  }),
 };
 
 type AnyAsyncActionCreator = AsyncActionCreatorBuilder<any, any, any>;
-export function transformToArray<AC extends AnyAsyncActionCreator>(asyncActionCreator: AC) {
+export function transformToArray<AC extends AnyAsyncActionCreator>(
+  asyncActionCreator: AC,
+) {
   const { request, success, failure } = asyncActionCreator;
   return [request, success, failure];
 }
 
-export function createAsyncReducer<S, AC extends AnyAsyncActionCreator, K extends keyof S>(
-  asyncActionCreator: AC,
-  key: K
-) {
+export function createAsyncReducer<
+  S,
+  AC extends AnyAsyncActionCreator,
+  K extends keyof S
+>(asyncActionCreator: AC, key: K) {
   return (state: S, action: AnyAction) => {
-      console.log("state: ", state, "action: ", action);
-    const [request, success, failure] = transformToArray(asyncActionCreator).map(getType);
+    console.log('state: ', state, 'action: ', action.payload);
+    const [request, success, failure] = transformToArray(
+      asyncActionCreator,
+    ).map(getType);
     switch (action.type) {
       case request:
-          console.log('request:', state, 'key:', key);
         return {
           ...state,
-          [key]: asyncState.load()
+          [key]: asyncState.load(),
         };
       case success:
-          console.log("createAsyncReducer:", state, "key:", key, "action:payload", action.payload);
         return {
           ...state,
-          [key]: asyncState.success(action.payload)
+          [key]: asyncState.success(action.payload),
         };
       case failure:
         return {
           ...state,
-          [key]: asyncState.error(action.payload)
+          [key]: asyncState.error(action.payload),
         };
       default:
         return state;

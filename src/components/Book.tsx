@@ -3,19 +3,20 @@ import {
   BookOutlined,
   HomeOutlined,
   EditOutlined,
-  DeleteOutlined
+  DeleteOutlined,
 } from '@ant-design/icons';
 import { Button, Tooltip } from 'antd';
 import styles from './Book.module.css';
 import { BookResType } from '../types';
 import { Link } from 'react-router-dom';
 
-interface BookProps extends BookResType {}
+interface BookProps extends BookResType {
+  deleteBook: (id: number) => void;
+}
 
 // [project] 컨테이너에 작성된 함수를 컴포넌트에서 이용했다.
 // [project] BookResType 의 응답 값을 이용하여, Book 컴포넌트를 완성했다.
 const Book: React.FC<BookProps> = (book) => {
-  
   return (
     <>
       <div className={styles.title}>
@@ -42,17 +43,16 @@ const Book: React.FC<BookProps> = (book) => {
             />
           </Link>
         </Tooltip>
-        <Tooltip title="Edit" className={styles.tooltips}>
-          <Button
-            type="default"
-            className={styles.buttonEdit}
-            shape="circle"
-            size="small"
-            onClick={() => {
-              alert('test');
-            }}
-            icon={<EditOutlined />}
-          />
+        <Tooltip title="Edit">
+          <Link to={`/edit/${book.bookId}`}>
+            <Button
+              type="default"
+              className={styles.buttonEdit}
+              shape="circle"
+              size="small"
+              icon={<EditOutlined />}
+            />
+          </Link>
         </Tooltip>
         <Tooltip title="Delete" className={styles.tooltips}>
           <Button
@@ -61,12 +61,11 @@ const Book: React.FC<BookProps> = (book) => {
             size="small"
             danger
             icon={<DeleteOutlined />}
-            onClick={() => {}}
+            onClick={() => book.deleteBook(book.bookId)}
           />
         </Tooltip>
       </div>
     </>
   );
 };
-
 export default Book;
