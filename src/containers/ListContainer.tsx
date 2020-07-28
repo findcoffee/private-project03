@@ -28,8 +28,10 @@ const ListContainer: React.FC = () => {
   const books = useSelector((state: RootState) => state.books.books);
 
   useEffect(() => {
-    dispatch(getBooksAsync.request());
-  }, [dispatch]);
+    if (books.data === null) {
+      dispatch(getBooksAsync.request());
+    }
+  }, [dispatch, books.data]);
 
   return (
     <>

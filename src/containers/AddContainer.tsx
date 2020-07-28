@@ -5,7 +5,7 @@ import Add from '../components/Add';
 import { logout as logoutSaga } from '../redux/modules/auth';
 import { goBack } from 'connected-react-router';
 import { BookReqType } from '../types';
-import { addBookAsync } from '../redux/modules/books';
+import { addBookAsync, getBooksAsync } from '../redux/modules/books';
 
 const AddContainer = () => {
   const dispatch = useDispatch();
@@ -21,11 +21,10 @@ const AddContainer = () => {
   const add = useCallback(
     (book: BookReqType) => {
       dispatch(addBookAsync.request(book));
+      dispatch(getBooksAsync.request());
     },
     [dispatch],
   );
-
-  
 
   return <Add loading={false} logout={logout} goBack={back} add={add} />;
 };

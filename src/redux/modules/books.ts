@@ -1,12 +1,8 @@
 import { BookResType, BookReqType } from '../../types';
 import { getTokenFromState } from '../utils';
-import {
-  createAsyncAction,
-  createReducer,
-  ActionType,
-} from 'typesafe-actions';
+import { createAsyncAction, createReducer, ActionType } from 'typesafe-actions';
 import { AxiosError } from 'axios';
-import { call, put, takeEvery, select } from 'redux-saga/effects';
+import { call, put, select, takeLatest } from 'redux-saga/effects';
 import { push } from 'connected-react-router';
 import BookService from '../../services/BookService';
 import {
@@ -119,7 +115,11 @@ function* getBooksSaga(action: ReturnType<typeof getBooksAsync.request>) {
 function* addBookSaga(action: ReturnType<typeof addBookAsync.request>) {
   try {
     const token: string = yield select(getTokenFromState);
-    const book:BookResType = yield call(BookService.addBook, token, action.payload);
+    const book: BookResType = yield call(
+      BookService.addBook,
+      token,
+      action.payload,
+    );
     yield put(addBookAsync.success(book));
     yield put(push('/'));
   } catch (error) {
@@ -142,7 +142,7 @@ function* deleteBookSaga(action: ReturnType<typeof deleteBookAsync.request>) {
 function* editBookSaga(action: ReturnType<typeof editBookAsync.request>) {
   try {
     const token: string = yield select(getTokenFromState);
-    const book:BookResType = yield call(
+    const book: BookResType = yield call(
       BookService.editBook,
       token,
       action.payload.id,
@@ -156,8 +156,8 @@ function* editBookSaga(action: ReturnType<typeof editBookAsync.request>) {
 
 // [project] saga 함수를 실행하는 액션과 액션 생성 함수를 작성했다.
 export function* sagas() {
-  yield takeEvery(GET_BOOKS_LIST, getBooksSaga);
-  yield takeEvery(ADD_BOOK, addBookSaga);
-  yield takeEvery(DELETE_BOOK, deleteBookSaga);
-  yield takeEvery(EDIT_BOOK, editBookSaga);
+  yield takeLatest(GET_BOOKS_LIST, getBooksSaga);
+  yield takeLatest(ADD_BOOK, addBookSaga);
+  yield takeLatest(DELETE_BOOK, deleteBookSaga);
+  yield takeLatest(EDIT_BOOK, editBookSaga);
 }
