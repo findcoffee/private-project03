@@ -1,6 +1,5 @@
 import { AnyAction } from 'redux';
 import { getType, AsyncActionCreatorBuilder } from 'typesafe-actions';
-import { T } from 'antd/lib/upload/utils';
 
 export type AsyncState<T, E = any> = {
   data: T[] | null;
