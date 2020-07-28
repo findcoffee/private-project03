@@ -3,7 +3,7 @@ import { getType, AsyncActionCreatorBuilder } from 'typesafe-actions';
 import { T } from 'antd/lib/upload/utils';
 
 export type AsyncState<T, E = any> = {
-  books: T[] | null;
+  data: T[] | null;
   loading: boolean;
   error: E | null;
 };
@@ -11,22 +11,22 @@ export type AsyncState<T, E = any> = {
 export const asyncState = {
   initial: <T, E = any>(initialData?: T[]): AsyncState<T, E> => ({
     loading: false,
-    books: initialData || null,
+    data: initialData || null,
     error: null,
   }),
-  load: <T, E = any>(books?: T[]): AsyncState<T, E> => ({
+  load: <T, E = any>(data?: T[]): AsyncState<T, E> => ({
     loading: true,
-    books: books || null,
+    data: data || null,
     error: null,
   }),
-  success: <T, E = any>(books: T[]): AsyncState<T, E> => ({
+  success: <T, E = any>(data: T[]): AsyncState<T, E> => ({
     loading: false,
-    books,
+    data,
     error: null,
   }),
   error: <T, E>(error: E): AsyncState<T, E> => ({
     loading: false,
-    books: null,
+    data: null,
     error: error,
   }),
 };
@@ -45,7 +45,6 @@ export function createAsyncReducer<
   K extends keyof S
 >(asyncActionCreator: AC, key: K) {
   return (state: S, action: AnyAction) => {
-    console.log('state: ', state, 'action: ', action.payload);
     const [request, success, failure] = transformToArray(
       asyncActionCreator,
     ).map(getType);

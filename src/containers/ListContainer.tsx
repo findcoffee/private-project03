@@ -21,23 +21,20 @@ const ListContainer: React.FC = () => {
   const deleteBook = useCallback(
     (id) => {
       dispatch(deleteBookAsync.request(id));
+      dispatch(getBooksAsync.request());
     },
     [dispatch],
   );
-  const { books, loading } = useSelector(
-    (state: RootState) => state.books.books,
-  );
+  const books = useSelector((state: RootState) => state.books.books);
 
   useEffect(() => {
     dispatch(getBooksAsync.request());
   }, [dispatch]);
 
-  console.log('List:', books);
   return (
     <>
       <List
         books={books}
-        loading={loading}
         goAdd={goAdd}
         logout={logout}
         deleteBook={deleteBook}

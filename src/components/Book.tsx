@@ -33,7 +33,7 @@ const Book: React.FC<BookProps> = (book) => {
       <div className={styles.created}>{book.createdAt}</div>
       <div className={styles.tooltips}>
         <Tooltip title={book.url}>
-          <Link to={`/book/${book.bookId}`} className={styles.linkUrl}>
+            <a href={book.url} className={styles.linkUrl} >
             <Button
               type="primary"
               className={styles.buttonUrl}
@@ -41,8 +41,10 @@ const Book: React.FC<BookProps> = (book) => {
               size="small"
               icon={<HomeOutlined />}
             />
-          </Link>
+            </a>
         </Tooltip>
+      </div>
+      <div className={styles.tooltips}>
         <Tooltip title="Edit">
           <Link to={`/edit/${book.bookId}`}>
             <Button
@@ -54,7 +56,9 @@ const Book: React.FC<BookProps> = (book) => {
             />
           </Link>
         </Tooltip>
-        <Tooltip title="Delete" className={styles.tooltips}>
+      </div>
+      <div className={styles.tooltips}>
+        <Tooltip title="Delete">
           <Button
             type="primary"
             shape="circle"

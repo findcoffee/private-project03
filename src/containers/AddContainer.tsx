@@ -25,6 +25,8 @@ const AddContainer = () => {
     [dispatch],
   );
 
+  
+
   return <Add loading={false} logout={logout} goBack={back} add={add} />;
 };
 

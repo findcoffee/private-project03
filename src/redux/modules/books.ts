@@ -4,7 +4,6 @@ import {
   createAsyncAction,
   createReducer,
   ActionType,
-  createAction,
 } from 'typesafe-actions';
 import { AxiosError } from 'axios';
 import { call, put, takeEvery, select } from 'redux-saga/effects';
@@ -16,7 +15,6 @@ import {
   asyncState,
   AsyncState,
 } from '../../lib/reducerUtils';
-import { AnyAction } from 'redux';
 
 export interface BooksState {
   books: AsyncState<BookResType, Error>;
@@ -62,16 +60,11 @@ export const booksReducer = createReducer<BooksState, BooksAction>(
 
 export default booksReducer;
 
-export interface ReqPrams {
-  token: string;
-  book: BookReqType;
-}
-
 export const addBookAsync = createAsyncAction(
   ADD_BOOK,
   ADD_BOOK_SUCCESS,
   ADD_BOOK_ERROR,
-)<BookReqType, BookResType[], AxiosError>();
+)<BookReqType, BookResType, AxiosError>();
 type AddAction = ActionType<typeof addBookAsync>;
 export const addReducer = createReducer<BooksState, AddAction>(
   initialState,
@@ -84,7 +77,7 @@ export const deleteBookAsync = createAsyncAction(
   DELETE_BOOK,
   DELETE_BOOK_SUCCESS,
   DELETE_BOOK_ERROR,
-)<number, BookResType[], AxiosError>();
+)<number, void, AxiosError>();
 type DeleteAction = ActionType<typeof deleteBookAsync>;
 export const deleteReducer = createReducer<BooksState, DeleteAction>(
   initialState,
@@ -102,7 +95,7 @@ export const editBookAsync = createAsyncAction(
   EDIT_BOOK,
   EDIT_BOOK_SUCCESS,
   EDIT_BOOK_ERROR,
-)<EditParams, BookResType[], AxiosError>();
+)<EditParams, BookResType, AxiosError>();
 type EditActionn = ActionType<typeof editBookAsync>;
 export const editReducer = createReducer<BooksState, EditActionn>(
   initialState,
@@ -110,47 +103,6 @@ export const editReducer = createReducer<BooksState, EditActionn>(
   transformToArray(editBookAsync),
   createAsyncReducer(editBookAsync, 'books'),
 );
-
-export interface DelBook {
-  type: typeof DELETE_BOOK;
-  payload: number;
-}
-
-export interface EditBook {
-  type: typeof EDIT_BOOK;
-  payload: BookResType;
-}
-
-export interface AddBook {
-  type: typeof ADD_BOOK;
-  payload: BookResType;
-}
-
-export type BookStateTypes = DelBook | EditBook | AddBook;
-
-export function delbookManage(id: number): BookStateTypes {
-  return {
-    type: DELETE_BOOK,
-    payload: id,
-  };
-}
-
-// export const reducer = (state = initialState, action: BookStateTypes): BooksState {
-//   switch (action.type) {
-//     case DELETE_BOOK:
-//       return {
-//         ...state,
-//         books: {
-//           books: state.books.books?.filter((book) => { book.bookId !== action.payload }),
-//           loading: false,
-//           error: null,
-//         }
-
-//       };
-//       default:
-//         return state;
-//   }
-// };
 
 // [project] 책 목록을 가져오는 saga 함수를 작성했다.
 function* getBooksSaga(action: ReturnType<typeof getBooksAsync.request>) {
@@ -167,9 +119,8 @@ function* getBooksSaga(action: ReturnType<typeof getBooksAsync.request>) {
 function* addBookSaga(action: ReturnType<typeof addBookAsync.request>) {
   try {
     const token: string = yield select(getTokenFromState);
-    yield call(BookService.addBook, token, action.payload);
-    const books: BookResType[] = yield call(BookService.getBooks, token);
-    yield put(addBookAsync.success(books));
+    const book:BookResType = yield call(BookService.addBook, token, action.payload);
+    yield put(addBookAsync.success(book));
     yield put(push('/'));
   } catch (error) {
     yield put(deleteBookAsync.failure(error));
@@ -181,24 +132,23 @@ function* deleteBookSaga(action: ReturnType<typeof deleteBookAsync.request>) {
   try {
     const token: string = yield select(getTokenFromState);
     yield call(BookService.deleteBook, token, action.payload);
-    const books = yield call(BookService.getBooks, token);
-    yield put(deleteBookAsync.success(books));
+    yield put(deleteBookAsync.success());
   } catch (error) {
     yield put(deleteBookAsync.failure(error));
   }
 }
+
 // [project] 책을 수정하는 saga 함수를 작성했다.
 function* editBookSaga(action: ReturnType<typeof editBookAsync.request>) {
   try {
     const token: string = yield select(getTokenFromState);
-    yield call(
+    const book:BookResType = yield call(
       BookService.editBook,
       token,
       action.payload.id,
       action.payload.book,
     );
-    const books = yield call(BookService.getBooks, token);
-    yield put(editBookAsync.success(books));
+    yield put(editBookAsync.success(book));
   } catch (error) {
     yield put(editBookAsync.failure(error));
   }
