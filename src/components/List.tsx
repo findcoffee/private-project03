@@ -8,23 +8,17 @@ import { BookResType } from '../types';
 
 interface BooksProps {
   books: BookResType[] | null;
-  loading: boolean;
   goAdd: () => void;
   logout: () => void;
+  loading: boolean;
   deleteBook: (id: number) => void;
 }
 
 // [project] 컨테이너에 작성된 함수를 컴포넌트에서 이용했다.
 // [project] BookResType 의 응답 값을 이용하여, List 컴포넌트의 키를 처리했다.
-const Books: React.FC<BooksProps> = ({
-  books,
-  loading,
-  goAdd,
-  logout,
-  deleteBook,
-}) => {
-    
-    return (
+const Books: React.FC<BooksProps> = ({ books, goAdd, logout, loading, deleteBook }) => {
+
+  return (
     <Layout>
       <PageHeader
         title={<div>Book List</div>}
@@ -49,7 +43,7 @@ const Books: React.FC<BooksProps> = ({
       />
       <img src="/bg_list.png" style={{ width: '100%' }} alt="books" />
       <Table
-          dataSource={books || []}
+        dataSource={books || []}
         columns={[
           {
             title: 'Book',
@@ -60,7 +54,7 @@ const Books: React.FC<BooksProps> = ({
             ),
           },
         ]}
-        loading={loading}
+        loading={books === null || loading}
         showHeader={false}
         className={styles.table}
         rowKey="bookId"

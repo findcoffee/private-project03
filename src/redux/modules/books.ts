@@ -2,7 +2,6 @@ import { AnyAction } from 'redux';
 import { BookResType, BookReqType } from '../../types';
 import { getTokenFromState } from '../utils';
 import { call, put, select, takeEvery } from 'redux-saga/effects';
-import { push } from 'connected-react-router';
 import BookService from '../../services/BookService';
 
 export interface BooksState {
@@ -106,13 +105,17 @@ const reducer = (state: BooksState = initialState,
   ): BooksState => {
     switch(action.type) {
       case GET_BOOKS_LIST:
+        return {
+          ...state,
+          loading: true,
+          error: null,
+        }        
       case ADD_BOOK:
       case EDIT_BOOK:        
       case DELETE_BOOK:
         return {
           ...state,
-          books: state.books,
-          loading: true,
+          loading: false,
           error: null,
         }
       case GET_BOOKS_LIST_SUCCESS:
@@ -189,7 +192,6 @@ function* addBookSaga(action: AddAction) {
       action.payload,
     );
     yield put(addSuccess(book));
-    yield put(push('/'));
   } catch (error) {
     yield put(addError(error));
   }

@@ -36,9 +36,8 @@ const EditContainer = ({ id }: EditContainerParams) => {
     (state: RootState) => state.books,
   );
   useEffect(() => {
-    if (books === null) {
+    if (books) return;
       dispatch(list());
-    }
   }, [books, dispatch]);
 
   const book = books && books.find((item) => String(item.bookId) === id);
