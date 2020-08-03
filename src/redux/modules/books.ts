@@ -3,6 +3,7 @@ import { BookResType, BookReqType } from '../../types';
 import { getTokenFromState } from '../utils';
 import { call, put, select, takeEvery } from 'redux-saga/effects';
 import BookService from '../../services/BookService';
+import { ReactType } from 'react';
 
 export interface BooksState {
   books: BookResType[] | null;
@@ -36,8 +37,14 @@ export const DELETE_BOOK = 'books/DELETE_BOOK' as const;
 export const DELETE_BOOK_SUCCESS = 'books/DELETE_BOOK_SUCCESS' as const;
 export const DELETE_BOOK_ERROR = 'books/DELETE_BOOK_ERROR' as const;
 
+export const PENDING = 'books/PENDING' as const;
+
+export const pending = () => ({
+  type: PENDING,
+});
+
 export const list = () => ({
-  type: GET_BOOKS_LIST
+  type: GET_BOOKS_LIST,
 });
 export const listSuccess = (books: BookResType[]) => ({
   type: GET_BOOKS_LIST_SUCCESS,
@@ -59,7 +66,7 @@ export const addError = (error: Error) => ({
   type: ADD_BOOK_ERROR,
   payload: error,
 });
-export const edit = (id:number, book: BookReqType) => ({
+export const edit = (id: number, book: BookReqType) => ({
   type: EDIT_BOOK,
   payload: book,
   meta: id,
@@ -79,90 +86,89 @@ export const deleteBook = (id: number) => ({
 export const deleteBookSuccess = (id: number) => ({
   type: DELETE_BOOK_SUCCESS,
   payload: id,
-})
+});
 export const deleteBookError = (error: Error) => ({
   type: DELETE_BOOK_ERROR,
   payload: error,
-})
+});
 
 type BooksAction =
-| ReturnType<typeof list>
-| ReturnType<typeof listSuccess>
-| ReturnType<typeof listError>
-| ReturnType<typeof add>
-| ReturnType<typeof addSuccess>
-| ReturnType<typeof addError>
-| ReturnType<typeof edit>
-| ReturnType<typeof editSuccess>
-| ReturnType<typeof editError>
-| ReturnType<typeof deleteBook>
-| ReturnType<typeof deleteBookSuccess>
-| ReturnType<typeof deleteBookError>
-;
+  | ReturnType<typeof list>
+  | ReturnType<typeof listSuccess>
+  | ReturnType<typeof listError>
+  | ReturnType<typeof add>
+  | ReturnType<typeof addSuccess>
+  | ReturnType<typeof addError>
+  | ReturnType<typeof edit>
+  | ReturnType<typeof editSuccess>
+  | ReturnType<typeof editError>
+  | ReturnType<typeof deleteBook>
+  | ReturnType<typeof deleteBookSuccess>
+  | ReturnType<typeof deleteBookError>
+  | ReturnType<typeof pending>;
 
-const reducer = (state: BooksState = initialState,
-  action: BooksAction
-  ): BooksState => {
-    switch(action.type) {
-      case GET_BOOKS_LIST:
-        return {
-          ...state,
-          loading: true,
-          error: null,
-        }        
-      case ADD_BOOK:
-      case EDIT_BOOK:        
-      case DELETE_BOOK:
-        return {
-          ...state,
-          loading: false,
-          error: null,
-        }
-      case GET_BOOKS_LIST_SUCCESS:
-        return {
-          ...state,
-          books: action.payload,
-          loading: false,
-          error: null,
-        }
-      case ADD_BOOK_SUCCESS:
-        return {
-          ...state,
-          books: state.books!.concat(action.payload),
-          loading: false,
-          error: null,
-        }
-      case EDIT_BOOK_SUCCESS:
-        return {
-          ...state,
-          books: state.books!.map((book) => 
-            book.bookId === action.payload.bookId ? action.payload : book
-          ),
-          loading: false,
-          error: null,
-        }
-      case DELETE_BOOK_SUCCESS:
-        return {
-          ...state,
-          books: state.books!.filter((book) => 
-            book.bookId !== action.payload
-          ),
-          loading: false,
-          error: null,
-        }
-      case GET_BOOKS_LIST_ERROR:        
-      case ADD_BOOK_ERROR:
-      case EDIT_BOOK_ERROR:
-      case DELETE_BOOK_ERROR:
-        return {
-          ...state,
-          books: null,
-          loading: false,
-          error: action.payload,
-        }
-      default:
-        return state;
-    }
+const reducer = (
+  state: BooksState = initialState,
+  action: BooksAction,
+): BooksState => {
+  switch (action.type) {
+    case PENDING:
+      return {
+        ...state,
+        loading: true,
+      };
+    case GET_BOOKS_LIST:
+    case ADD_BOOK:
+    case EDIT_BOOK:
+    case DELETE_BOOK:
+      return {
+        ...state,
+        loading: false,
+        error: null,
+      };
+    case GET_BOOKS_LIST_SUCCESS:
+      return {
+        ...state,
+        books: action.payload,
+        loading: false,
+        error: null,
+      };
+    case ADD_BOOK_SUCCESS:
+      return {
+        ...state,
+        books: state.books!.concat(action.payload),
+        loading: false,
+        error: null,
+      };
+    case EDIT_BOOK_SUCCESS:
+      return {
+        ...state,
+        books: state.books!.map((book) =>
+          book.bookId === action.payload.bookId ? action.payload : book,
+        ),
+        loading: false,
+        error: null,
+      };
+    case DELETE_BOOK_SUCCESS:
+      return {
+        ...state,
+        books: state.books!.filter((book) => book.bookId !== action.payload),
+        loading: false,
+        error: null,
+      };
+    case GET_BOOKS_LIST_ERROR:
+    case ADD_BOOK_ERROR:
+    case EDIT_BOOK_ERROR:
+    case DELETE_BOOK_ERROR:
+      return {
+        ...state,
+        books: null,
+        loading: false,
+        error: action.payload,
+      };
+    default:
+      return state;
+  }
 };
 
 export default reducer;
@@ -170,6 +176,7 @@ export default reducer;
 // [project] 책 목록을 가져오는 saga 함수를 작성했다.
 function* getBooksSaga() {
   try {
+    yield put(pending());
     const token: string = yield select(getTokenFromState);
     const books: BookResType[] = yield call(BookService.getBooks, token);
     yield put(listSuccess(books));
@@ -185,6 +192,7 @@ interface AddAction extends AnyAction {
 // [project] 책을 추가하는 saga 함수를 작성했다.
 function* addBookSaga(action: AddAction) {
   try {
+    yield put(pending());
     const token: string = yield select(getTokenFromState);
     const book: BookResType = yield call(
       BookService.addBook,
@@ -204,6 +212,7 @@ interface DeleteAction extends AnyAction {
 // [project] 책을 삭제하는 saga 함수를 작성했다.
 function* deleteBookSaga(action: DeleteAction) {
   try {
+    yield put(pending());
     const token: string = yield select(getTokenFromState);
     yield call(BookService.deleteBook, token, action.payload);
     yield put(deleteBookSuccess(action.payload));
@@ -220,6 +229,7 @@ interface EditAction extends AnyAction {
 // [project] 책을 수정하는 saga 함수를 작성했다.
 function* editBookSaga(action: EditAction) {
   try {
+    yield put(pending());
     const token: string = yield select(getTokenFromState);
     const book: BookResType = yield call(
       BookService.editBook,
