@@ -4,11 +4,11 @@ import { Table, PageHeader, Button } from 'antd';
 import styles from './List.module.css';
 import Layout from './Layout';
 import Book from './Book';
-import { AsyncState } from '../lib/reducerUtils';
 import { BookResType } from '../types';
 
 interface BooksProps {
-  books: AsyncState<BookResType, Error>;
+  books: BookResType[] | null;
+  loading: boolean;
   goAdd: () => void;
   logout: () => void;
   deleteBook: (id: number) => void;
@@ -18,12 +18,12 @@ interface BooksProps {
 // [project] BookResType 의 응답 값을 이용하여, List 컴포넌트의 키를 처리했다.
 const Books: React.FC<BooksProps> = ({
   books,
+  loading,
   goAdd,
   logout,
   deleteBook,
 }) => {
-    const { data, loading } = books;
-
+    
     return (
     <Layout>
       <PageHeader
@@ -49,7 +49,7 @@ const Books: React.FC<BooksProps> = ({
       />
       <img src="/bg_list.png" style={{ width: '100%' }} alt="books" />
       <Table
-          dataSource={data || []}
+          dataSource={books || []}
         columns={[
           {
             title: 'Book',

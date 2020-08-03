@@ -1,118 +1,186 @@
+import { AnyAction } from 'redux';
 import { BookResType, BookReqType } from '../../types';
 import { getTokenFromState } from '../utils';
-import { createAsyncAction, createReducer, ActionType } from 'typesafe-actions';
-import { AxiosError } from 'axios';
-import { call, put, select, takeLatest } from 'redux-saga/effects';
+import { call, put, select, takeEvery } from 'redux-saga/effects';
 import { push } from 'connected-react-router';
 import BookService from '../../services/BookService';
-import {
-  transformToArray,
-  createAsyncReducer,
-  asyncState,
-  AsyncState,
-} from '../../lib/reducerUtils';
 
 export interface BooksState {
-  books: AsyncState<BookResType, Error>;
+  books: BookResType[] | null;
+  loading: boolean;
+  error: Error | null;
 }
 
 const initialState: BooksState = {
-  books: asyncState.initial(),
+  books: null,
+  loading: false,
+  error: null,
 };
 
-export const GET_BOOKS_LIST = 'books/GET_BOOKS_LIST';
-export const GET_BOOKS_LIST_SUCCESS = 'books/GET_BOOKS_LIST_SUCCESS';
-export const GET_BOOKS_LIST_ERROR = 'books/GET_BOOKS_LIST_ERROR';
+export const GET_BOOKS_LIST = 'books/GET_BOOKS_LIST' as const;
+export const GET_BOOKS_LIST_SUCCESS = 'books/GET_BOOKS_LIST_SUCCESS' as const;
+export const GET_BOOKS_LIST_ERROR = 'books/GET_BOOKS_LIST_ERROR' as const;
 
-export const ADD_BOOK = 'books/ADD_BOOK';
-export const ADD_BOOK_SUCCESS = 'books/ADD_BOOK_SUCCESS';
-export const ADD_BOOK_ERROR = 'books/ADD_BOOK_ERROR';
+export const ADD_BOOK = 'books/ADD_BOOK' as const;
+export const ADD_BOOK_SUCCESS = 'books/ADD_BOOK_SUCCESS' as const;
+export const ADD_BOOK_ERROR = 'books/ADD_BOOK_ERROR' as const;
 
-export const EDIT_BOOK = 'books/EDIT_BOOK';
-export const EDIT_BOOK_SUCCESS = 'books/EDIT_BOOK_SUCCESS';
-export const EDIT_BOOK_ERROR = 'books/EDIT_BOOK_ERROR';
+export const EDIT_BOOK = 'books/EDIT_BOOK' as const;
+export const EDIT_BOOK_SUCCESS = 'books/EDIT_BOOK_SUCCESS' as const;
+export const EDIT_BOOK_ERROR = 'books/EDIT_BOOK_ERROR' as const;
 
-export const DETAIL_BOOK = 'books/DETAIL_BOOK';
-export const DETAIL_BOOK_SUCCESS = 'books/DETAIL_BOOK_SUCCESS';
-export const DETAIL_BOOK_ERROR = 'books/DETAIL_BOOK_ERROR';
+export const DETAIL_BOOK = 'books/DETAIL_BOOK' as const;
+export const DETAIL_BOOK_SUCCESS = 'books/DETAIL_BOOK_SUCCESS' as const;
+export const DETAIL_BOOK_ERROR = 'books/DETAIL_BOOK_ERROR' as const;
 
-export const DELETE_BOOK = 'books/DELETE_BOOK';
-export const DELETE_BOOK_SUCCESS = 'books/DELETE_BOOK_SUCCESS';
-export const DELETE_BOOK_ERROR = 'books/DELETE_BOOK_ERROR';
+export const DELETE_BOOK = 'books/DELETE_BOOK' as const;
+export const DELETE_BOOK_SUCCESS = 'books/DELETE_BOOK_SUCCESS' as const;
+export const DELETE_BOOK_ERROR = 'books/DELETE_BOOK_ERROR' as const;
 
-export const getBooksAsync = createAsyncAction(
-  GET_BOOKS_LIST,
-  GET_BOOKS_LIST_SUCCESS,
-  GET_BOOKS_LIST_ERROR,
-)<void, BookResType[], AxiosError>();
+export const list = () => ({
+  type: GET_BOOKS_LIST
+});
+export const listSuccess = (books: BookResType[]) => ({
+  type: GET_BOOKS_LIST_SUCCESS,
+  payload: books,
+});
+export const listError = (error: Error) => ({
+  type: GET_BOOKS_LIST_ERROR,
+  payload: error,
+});
+export const add = (book: BookReqType) => ({
+  type: ADD_BOOK,
+  payload: book,
+});
+export const addSuccess = (book: BookResType) => ({
+  type: ADD_BOOK_SUCCESS,
+  payload: book,
+});
+export const addError = (error: Error) => ({
+  type: ADD_BOOK_ERROR,
+  payload: error,
+});
+export const edit = (id:number, book: BookReqType) => ({
+  type: EDIT_BOOK,
+  payload: book,
+  meta: id,
+});
+export const editSuccess = (book: BookResType) => ({
+  type: EDIT_BOOK_SUCCESS,
+  payload: book,
+});
+export const editError = (error: Error) => ({
+  type: EDIT_BOOK_ERROR,
+  payload: error,
+});
+export const deleteBook = (id: number) => ({
+  type: DELETE_BOOK,
+  payload: id,
+});
+export const deleteBookSuccess = (id: number) => ({
+  type: DELETE_BOOK_SUCCESS,
+  payload: id,
+})
+export const deleteBookError = (error: Error) => ({
+  type: DELETE_BOOK_ERROR,
+  payload: error,
+})
 
-type BooksAction = ActionType<typeof getBooksAsync>;
-export const booksReducer = createReducer<BooksState, BooksAction>(
-  initialState,
-).handleAction(
-  transformToArray(getBooksAsync),
-  createAsyncReducer(getBooksAsync, 'books'),
-);
+type BooksAction =
+| ReturnType<typeof list>
+| ReturnType<typeof listSuccess>
+| ReturnType<typeof listError>
+| ReturnType<typeof add>
+| ReturnType<typeof addSuccess>
+| ReturnType<typeof addError>
+| ReturnType<typeof edit>
+| ReturnType<typeof editSuccess>
+| ReturnType<typeof editError>
+| ReturnType<typeof deleteBook>
+| ReturnType<typeof deleteBookSuccess>
+| ReturnType<typeof deleteBookError>
+;
 
-export default booksReducer;
+const reducer = (state: BooksState = initialState,
+  action: BooksAction
+  ): BooksState => {
+    switch(action.type) {
+      case GET_BOOKS_LIST:
+      case ADD_BOOK:
+      case EDIT_BOOK:        
+      case DELETE_BOOK:
+        return {
+          ...state,
+          books: state.books,
+          loading: true,
+          error: null,
+        }
+      case GET_BOOKS_LIST_SUCCESS:
+        return {
+          ...state,
+          books: action.payload,
+          loading: false,
+          error: null,
+        }
+      case ADD_BOOK_SUCCESS:
+        return {
+          ...state,
+          books: state.books!.concat(action.payload),
+          loading: false,
+          error: null,
+        }
+      case EDIT_BOOK_SUCCESS:
+        return {
+          ...state,
+          books: state.books!.map((book) => 
+            book.bookId === action.payload.bookId ? action.payload : book
+          ),
+          loading: false,
+          error: null,
+        }
+      case DELETE_BOOK_SUCCESS:
+        return {
+          ...state,
+          books: state.books!.filter((book) => 
+            book.bookId !== action.payload
+          ),
+          loading: false,
+          error: null,
+        }
+      case GET_BOOKS_LIST_ERROR:        
+      case ADD_BOOK_ERROR:
+      case EDIT_BOOK_ERROR:
+      case DELETE_BOOK_ERROR:
+        return {
+          ...state,
+          books: null,
+          loading: false,
+          error: action.payload,
+        }
+      default:
+        return state;
+    }
+};
 
-export const addBookAsync = createAsyncAction(
-  ADD_BOOK,
-  ADD_BOOK_SUCCESS,
-  ADD_BOOK_ERROR,
-)<BookReqType, BookResType, AxiosError>();
-type AddAction = ActionType<typeof addBookAsync>;
-export const addReducer = createReducer<BooksState, AddAction>(
-  initialState,
-).handleAction(
-  transformToArray(addBookAsync),
-  createAsyncReducer(addBookAsync, 'books'),
-);
-
-export const deleteBookAsync = createAsyncAction(
-  DELETE_BOOK,
-  DELETE_BOOK_SUCCESS,
-  DELETE_BOOK_ERROR,
-)<number, void, AxiosError>();
-type DeleteAction = ActionType<typeof deleteBookAsync>;
-export const deleteReducer = createReducer<BooksState, DeleteAction>(
-  initialState,
-).handleAction(
-  transformToArray(deleteBookAsync),
-  createAsyncReducer(deleteBookAsync, 'books'),
-);
-
-export interface EditParams {
-  book: BookReqType;
-  id: number;
-}
-
-export const editBookAsync = createAsyncAction(
-  EDIT_BOOK,
-  EDIT_BOOK_SUCCESS,
-  EDIT_BOOK_ERROR,
-)<EditParams, BookResType, AxiosError>();
-type EditActionn = ActionType<typeof editBookAsync>;
-export const editReducer = createReducer<BooksState, EditActionn>(
-  initialState,
-).handleAction(
-  transformToArray(editBookAsync),
-  createAsyncReducer(editBookAsync, 'books'),
-);
+export default reducer;
 
 // [project] 책 목록을 가져오는 saga 함수를 작성했다.
-function* getBooksSaga(action: ReturnType<typeof getBooksAsync.request>) {
+function* getBooksSaga() {
   try {
     const token: string = yield select(getTokenFromState);
     const books: BookResType[] = yield call(BookService.getBooks, token);
-    yield put(getBooksAsync.success(books));
+    yield put(listSuccess(books));
   } catch (error) {
-    yield put(getBooksAsync.failure(error));
+    yield put(listError(error));
   }
 }
 
+interface AddAction extends AnyAction {
+  payload: BookReqType;
+}
+
 // [project] 책을 추가하는 saga 함수를 작성했다.
-function* addBookSaga(action: ReturnType<typeof addBookAsync.request>) {
+function* addBookSaga(action: AddAction) {
   try {
     const token: string = yield select(getTokenFromState);
     const book: BookResType = yield call(
@@ -120,44 +188,53 @@ function* addBookSaga(action: ReturnType<typeof addBookAsync.request>) {
       token,
       action.payload,
     );
-    yield put(addBookAsync.success(book));
+    yield put(addSuccess(book));
     yield put(push('/'));
   } catch (error) {
-    yield put(deleteBookAsync.failure(error));
+    yield put(addError(error));
   }
+}
+
+interface DeleteAction extends AnyAction {
+  payload: number;
 }
 
 // [project] 책을 삭제하는 saga 함수를 작성했다.
-function* deleteBookSaga(action: ReturnType<typeof deleteBookAsync.request>) {
+function* deleteBookSaga(action: DeleteAction) {
   try {
     const token: string = yield select(getTokenFromState);
     yield call(BookService.deleteBook, token, action.payload);
-    yield put(deleteBookAsync.success());
+    yield put(deleteBookSuccess(action.payload));
   } catch (error) {
-    yield put(deleteBookAsync.failure(error));
+    yield put(deleteBookError(error));
   }
 }
 
+interface EditAction extends AnyAction {
+  payload: BookReqType;
+  meta: number;
+}
+
 // [project] 책을 수정하는 saga 함수를 작성했다.
-function* editBookSaga(action: ReturnType<typeof editBookAsync.request>) {
+function* editBookSaga(action: EditAction) {
   try {
     const token: string = yield select(getTokenFromState);
     const book: BookResType = yield call(
       BookService.editBook,
       token,
-      action.payload.id,
-      action.payload.book,
+      action.meta,
+      action.payload,
     );
-    yield put(editBookAsync.success(book));
+    yield put(editSuccess(book));
   } catch (error) {
-    yield put(editBookAsync.failure(error));
+    yield put(editError(error));
   }
 }
 
 // [project] saga 함수를 실행하는 액션과 액션 생성 함수를 작성했다.
 export function* sagas() {
-  yield takeLatest(GET_BOOKS_LIST, getBooksSaga);
-  yield takeLatest(ADD_BOOK, addBookSaga);
-  yield takeLatest(DELETE_BOOK, deleteBookSaga);
-  yield takeLatest(EDIT_BOOK, editBookSaga);
+  yield takeEvery(GET_BOOKS_LIST, getBooksSaga);
+  yield takeEvery(ADD_BOOK, addBookSaga);
+  yield takeEvery(DELETE_BOOK, deleteBookSaga);
+  yield takeEvery(EDIT_BOOK, editBookSaga);
 }

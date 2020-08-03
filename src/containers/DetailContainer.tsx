@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/modules/rootReducer';
 import Detail from '../components/Detail';
 import { logout as logoutSaga } from '../redux/modules/auth';
-import { getBooksAsync } from '../redux/modules/books';
+import { list } from '../redux/modules/books';
 
 interface DetailProps {
   id: string;
@@ -29,14 +29,14 @@ const DetailContainer: React.FC<DetailProps> = ({ id }) => {
     [dispatch],
   );
 
-  const { data } = useSelector((state: RootState) => state.books.books);
+  const { books } = useSelector((state: RootState) => state.books);
   useEffect(() => {
-      if (data === null) {
-        dispatch(getBooksAsync.request());
+      if (books === null) {
+        dispatch(list());
       }
-  }, [data, dispatch]);
+  }, [books, dispatch]);
 
-  const book = data && data.find((item) => String(item.bookId) === id);
+  const book = books && books.find((item) => String(item.bookId) === id);
   return <Detail book={book} logout={logout} edit={editBook} goBack={back} />;
 };
 
