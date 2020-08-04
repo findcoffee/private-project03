@@ -3,7 +3,6 @@ import { BookResType, BookReqType } from '../../types';
 import { getTokenFromState } from '../utils';
 import { call, put, select, takeEvery } from 'redux-saga/effects';
 import BookService from '../../services/BookService';
-import { ReactType } from 'react';
 
 export interface BooksState {
   books: BookResType[] | null;
