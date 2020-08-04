@@ -79,4 +79,9 @@ const Book: React.FC<BookProps> = (book) => {
     </>
   );
 };
-export default React.memo(Book);
+
+function areEqual(prevProps: BookProps, nextProps: BookProps) {
+  return JSON.stringify(prevProps) === JSON.stringify(nextProps);
+}
+
+export default React.memo(Book, areEqual);
