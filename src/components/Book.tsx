@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import {
   BookOutlined,
   HomeOutlined,
@@ -17,6 +17,13 @@ interface BookProps extends BookResType {
 // [project] 컨테이너에 작성된 함수를 컴포넌트에서 이용했다.
 // [project] BookResType 의 응답 값을 이용하여, Book 컴포넌트를 완성했다.
 const Book: React.FC<BookProps> = (book) => {
+  console.log("Rendering !!! : Book");
+
+  const { deleteBook, bookId } = book;
+  const deleteHandler = useCallback(() => {
+    deleteBook(bookId);
+  }, [deleteBook, bookId]);
+
   return (
     <>
       <div className={styles.title}>
@@ -65,11 +72,16 @@ const Book: React.FC<BookProps> = (book) => {
             size="small"
             danger
             icon={<DeleteOutlined />}
-            onClick={() => book.deleteBook(book.bookId)}
+            onClick={deleteHandler}
           />
         </Tooltip>
       </div>
     </>
   );
 };
-export default Book;
+
+function areEqual(prevProps: BookProps, nextProps: BookProps) {
+  return JSON.stringify(prevProps) === JSON.stringify(nextProps);
+}
+
+export default React.memo(Book, areEqual);

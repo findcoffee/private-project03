@@ -27,9 +27,9 @@ const ListContainer: React.FC =  () => {
   const { books, loading } = state;
 
   useEffect(() => {
-    if (books) return;
+    //if (books) return;
     dispatch(list());
-  }, [books, dispatch]);
+  }, [dispatch]);
 
   return (
     <>
@@ -44,4 +44,4 @@ const ListContainer: React.FC =  () => {
   );
 };
 
-export default ListContainer;
+export default React.memo(ListContainer);

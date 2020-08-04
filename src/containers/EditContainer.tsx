@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import Edit from '../components/Edit';
 import { RootState } from '../redux/modules/rootReducer';
-import { goBack, push } from 'connected-react-router';
+import { goBack } from 'connected-react-router';
 import { logout as logoutSaga } from '../redux/modules/auth';
 import { edit, list } from '../redux/modules/books'
 import { BookReqType } from '../types';
@@ -26,8 +26,7 @@ const EditContainer = ({ id }: EditContainerParams) => {
   // [project] Edit 나 Detail 컴포넌트에서 새로고침 시, 리스트가 없는 경우, 리스트를 받아오도록 처리했다.
   const editHandler = useCallback(
     (book: BookReqType, id: number) => {
-      dispatch(edit(id, book));
-      dispatch(push('/'));
+      dispatch(edit(book, id));
     },
     [dispatch],
   );
