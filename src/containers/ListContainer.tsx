@@ -44,4 +44,4 @@ const ListContainer: React.FC =  () => {
   );
 };
 
-export default ListContainer;
+export default React.memo(ListContainer);
