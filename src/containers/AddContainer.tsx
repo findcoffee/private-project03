@@ -3,7 +3,7 @@ import { useDispatch } from 'react-redux';
 
 import Add from '../components/Add';
 import { logout as logoutSaga } from '../redux/modules/auth';
-import { goBack, push } from 'connected-react-router';
+import { goBack } from 'connected-react-router';
 import { BookReqType } from '../types';
 import { add } from '../redux/modules/books';
 
@@ -21,7 +21,6 @@ const AddContainer = () => {
   const addHandler = useCallback(
     (book: BookReqType) => {
       dispatch(add(book));
-      dispatch(push('/'));
     },
     [dispatch],
   );

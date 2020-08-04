@@ -29,7 +29,7 @@ const ListContainer: React.FC =  () => {
   useEffect(() => {
     if (books) return;
     dispatch(list());
-  }, [books, dispatch]);
+  }, [dispatch, books]);
 
   return (
     <>
