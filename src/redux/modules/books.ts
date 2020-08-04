@@ -4,7 +4,7 @@ import { getTokenFromState } from '../utils';
 import { call, put, select, takeEvery } from 'redux-saga/effects';
 import { push } from 'connected-react-router';
 import BookService from '../../services/BookService';
-import { createAction, ActionType } from 'typesafe-actions';
+import { createAction, ActionType, createReducer } from 'typesafe-actions';
 
 export interface BooksState {
   books: BookResType[] | null;
@@ -64,81 +64,49 @@ const bookActions = {
 
 type BooksAction = ActionType<typeof bookActions>;
 
-const errorHandler = (state: BooksState, action: BooksAction) => {
-  switch(action.type) {
-    case GET_BOOKS_LIST_ERROR:
-    case ADD_BOOK_ERROR:
-    case EDIT_BOOK_ERROR:
-    case DELETE_BOOK_ERROR:
-      return {
-        ...state,
-        books: null,
-        loading: false,
-        error: action.payload,
-      };
-    default:
-      return state;
-  }
-}
-
-const reducer = (
-  state: BooksState = initialState,
-  action: BooksAction,
-): BooksState => {
-  switch (action.type) {
-    case PENDING:
-      return {
-        ...state,
-        loading: true,
-      };
-    case GET_BOOKS_LIST:
-    case ADD_BOOK:
-    case EDIT_BOOK:
-    case DELETE_BOOK:
-      return {
-        ...state,
-        loading: false,
-        error: null,
-    };
-    case GET_BOOKS_LIST_SUCCESS:
-      return {
-        ...state,
-        books: action.payload,
-        loading: false,
-        error: null,
-      };
-    case ADD_BOOK_SUCCESS:
-      return {
-        ...state,
-        books: state.books!.concat(action.payload),
-        loading: false,
-        error: null,
-      };
-    case EDIT_BOOK_SUCCESS:
-      return {
-        ...state,
-        books: state.books!.map((book) =>
-          book.bookId === action.payload.bookId ? action.payload : book,
-        ),
-        loading: false,
-        error: null,
-      };
-    case DELETE_BOOK_SUCCESS:
-      return {
-        ...state,
-        books: state.books!.filter((book) => book.bookId !== action.payload),
-        loading: false,
-        error: null,
-      };
-    case GET_BOOKS_LIST_ERROR:
-    case ADD_BOOK_ERROR:
-    case EDIT_BOOK_ERROR:
-    case DELETE_BOOK_ERROR:
-      return errorHandler(state, action);
-    default:
-      return state;
-  }
-};
+const reducer = createReducer<BooksState, BooksAction>(initialState)
+  .handleAction(pending, state => ({
+    ...state,
+    loading: true,
+  }))
+  .handleAction([list, add, edit, deleteBook], (state) => ({
+    ...state,
+    loading: false,
+    error: null,
+  }))
+  .handleAction([listError, addError, editError, deleteBookError], (state, action) => ({
+    ...state,
+    books: null,
+    loading: false,
+    error: action.payload,
+  }))
+  .handleAction(listSuccess, (state, action) => ({
+    ...state,
+    books: action.payload,
+    loading: false,
+    error: null,    
+  }))
+  .handleAction(addSuccess, (state, action) => ({
+    ...state,
+    books: state.books!.concat(action.payload),
+    loading: false,
+    error: null,
+  }))
+  .handleAction(editSuccess, (state, action) => ({
+    ...state,
+    books: state.books!.map((book) =>
+      book.bookId === action.payload.bookId ? action.payload : book,
+    ),
+    loading: false,
+    error: null,
+  }))
+  .handleAction(deleteBookSuccess, (state, action) => ({
+    ...state,
+    books: state.books!.filter((book) => book.bookId !== action.payload),
+    loading: false,
+    error: null,
+  }))
+  ;
 
 export default reducer;
 
