@@ -19,25 +19,18 @@ const initialState: BooksState = {
 };
 
 export const pending = createAction('PENDING')();
+export const success = createAction('SUCCESS')<BookResType[]>();
+export const errorHandler = createAction('ERROR')<Error>();
+
 export const list = createAction('GET_BOOKS_LIST')();
-export const listSuccess = createAction('GET_BOOKS_LIST_SUCCESS')<BookResType[]>();
-export const listError = createAction('GET_BOOKS_LIST_ERROR')<Error>();
 export const add = createAction('ADD_BOOK')<BookReqType>();
-export const addSuccess = createAction('ADD_BOOK_SUCCESS')<BookResType>();
-export const addError = createAction('ADD_BOOK_ERROR')<Error>();
 export const edit = createAction('EDIT_BOOK')<BookReqType, number>();
-export const editSuccess = createAction('EDIT_BOOK_SUCCESS')<BookResType>();
-export const editError = createAction('EDIT_BOOK_ERROR')<Error>();
 export const deleteBook = createAction('DELETE_BOOK')<number>();
-export const deleteBookSuccess = createAction('DELETE_BOOK_SUCCESS')<number>();
-export const deleteBookError = createAction('DELETE_BOOK_ERROR')<Error>();
 
 const bookActions = { 
-  pending
-  , list, listSuccess, listError
-  , add, addSuccess, addError
-  , edit, editSuccess, editError 
-  , deleteBook, deleteBookSuccess, deleteBookError
+  pending, success, errorHandler
+  , list , add, edit
+  , deleteBook
 };
 
 type BooksAction = ActionType<typeof bookActions>;
@@ -52,39 +45,18 @@ const reducer = createReducer<BooksState, BooksAction>(initialState)
     loading: false,
     error: null,
   }))
-  .handleAction([listError, addError, editError, deleteBookError], (state, action) => ({
+  .handleAction(errorHandler, (state, action) => ({
     ...state,
     books: null,
     loading: false,
     error: action.payload,
   }))
-  .handleAction(listSuccess, (state, action) => ({
+  .handleAction(success, (state, action) => ({
     ...state,
     books: action.payload,
     loading: false,
-    error: null,    
-  }))
-  .handleAction(addSuccess, (state, action) => ({
-    ...state,
-    books: state.books!.concat(action.payload),
-    loading: false,
     error: null,
-  }))
-  .handleAction(editSuccess, (state, action) => ({
-    ...state,
-    books: state.books!.map((book) =>
-      book.bookId === action.payload.bookId ? action.payload : book,
-    ),
-    loading: false,
-    error: null,
-  }))
-  .handleAction(deleteBookSuccess, (state, action) => ({
-    ...state,
-    books: state.books!.filter((book) => book.bookId !== action.payload),
-    loading: false,
-    error: null,
-  }))
-  ;
+  }));
 
 export default reducer;
 
@@ -94,9 +66,9 @@ function* getBooksSaga() {
     yield put(pending());
     const token: string = yield select(getTokenFromState);
     const books: BookResType[] = yield call(BookService.getBooks, token);
-    yield put(listSuccess(books));
+    yield put(success(books));
   } catch (error) {
-    yield put(listError(error));
+    yield put(errorHandler(error));
   }
 }
 
@@ -109,15 +81,16 @@ function* addBookSaga(action: AddAction) {
   try {
     yield put(pending());
     const token: string = yield select(getTokenFromState);
-    const book: BookResType = yield call(
+    yield call(
       BookService.addBook,
       token,
       action.payload,
     );
-    yield put(addSuccess(book));
+    const books: BookResType[] = yield call(BookService.getBooks, token);
+    yield put(success(books));
     yield put(push('/'));
   } catch (error) {
-    yield put(addError(error));
+    yield put(errorHandler(error));
   }
 }
 
@@ -131,9 +104,10 @@ function* deleteBookSaga(action: DeleteAction) {
     yield put(pending());
     const token: string = yield select(getTokenFromState);
     yield call(BookService.deleteBook, token, action.payload);
-    yield put(deleteBookSuccess(action.payload));
+    const books: BookResType[] = yield call(BookService.getBooks, token);
+    yield put(success(books));
   } catch (error) {
-    yield put(deleteBookError(error));
+    yield put(errorHandler(error));
   }
 }
 
@@ -147,16 +121,17 @@ function* editBookSaga(action: EditAction) {
   try {
     yield put(pending());
     const token: string = yield select(getTokenFromState);
-    const book: BookResType = yield call(
+    yield call(
       BookService.editBook,
       token,
       action.meta,
       action.payload,
     );
-    yield put(editSuccess(book));
+    const books: BookResType[] = yield call(BookService.getBooks, token);
+    yield put(success(books));
     yield put(push('/'));
   } catch (error) {
-    yield put(editError(error));
+    yield put(errorHandler(error));
   }
 }
 

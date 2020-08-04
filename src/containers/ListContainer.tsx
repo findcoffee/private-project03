@@ -27,9 +27,9 @@ const ListContainer: React.FC =  () => {
   const { books, loading } = state;
 
   useEffect(() => {
-    if (books) return;
+    //if (books) return;
     dispatch(list());
-  }, [dispatch, books]);
+  }, [dispatch]);
 
   return (
     <>
