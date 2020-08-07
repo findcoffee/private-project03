@@ -6,12 +6,18 @@ const BOOK_API_URL = 'https://api.marktube.tv/v1/book';
 
 export default class BookService {
   public static async getBooks(token: string): Promise<BookResType[]> {
-    const response = await axios.get<BookResType[]>(BOOK_API_URL, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    return response.data;
+    try {
+      const response = await axios.get<BookResType[]>(BOOK_API_URL, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+  
+      return response.data;
+    } catch(e) {
+      console.log("getDataError:", e);
+      throw new Error(e);
+    }
   }
 
   public static async addBook(

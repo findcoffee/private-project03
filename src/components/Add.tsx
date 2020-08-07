@@ -5,14 +5,17 @@ import { FormOutlined } from '@ant-design/icons';
 
 import Layout from './Layout';
 import styles from './Add.module.css';
+import { BookReqType } from '../types';
 
 interface AddProps {
   loading: boolean;
   logout: () => void;
+  goBack: () => void;
+  add: (book: BookReqType) => void;
 }
 
 // [project] 컨테이너에 작성된 함수를 컴포넌트에서 이용했다.
-const Add: React.FC<AddProps> = ({ loading, logout }) => {
+const Add: React.FC<AddProps> = ({ loading, logout, goBack, add }) => {
   const titleRef = React.useRef<Input>(null);
   const messageRef = React.useRef<TextArea>(null);
   const authorRef = React.useRef<Input>(null);
@@ -21,6 +24,7 @@ const Add: React.FC<AddProps> = ({ loading, logout }) => {
   return (
     <Layout>
       <PageHeader
+        onBack={goBack}
         title={
           <div>
             <FormOutlined /> Add Book
@@ -108,6 +112,8 @@ const Add: React.FC<AddProps> = ({ loading, logout }) => {
       messageDialog.error('Please fill out all inputs');
       return;
     }
+
+    add({ title, message, author, url });
   }
 };
 export default Add;

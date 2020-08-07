@@ -1,10 +1,16 @@
-import React, { useCallback } from 'react';
-import { useDispatch } from 'react-redux';
-
+import React, { useCallback, useEffect } from 'react';
+import { push, goBack } from 'connected-react-router';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../redux/modules/rootReducer';
 import Detail from '../components/Detail';
 import { logout as logoutSaga } from '../redux/modules/auth';
+import { list } from '../redux/modules/books';
 
-const DetailContainer = () => {
+interface DetailProps {
+  id: string;
+}
+
+const DetailContainer: React.FC<DetailProps> = ({ id }) => {
   const dispatch = useDispatch();
   const logout = useCallback(() => {
     dispatch(logoutSaga());
@@ -13,8 +19,25 @@ const DetailContainer = () => {
   // [project] saga 함수를 실행하는 액션 생성 함수를 실행하는 함수를 컨테이너에 작성했다.
   // [project] 컨테이너에서 useDispatch, useSelector, useCallback 을 활용해서 중복없이 비동기 데이터를 보여주도록 처리했다.
   // [project] Edit 나 Detail 컴포넌트에서 새로고침 시, 리스트가 없는 경우, 리스트를 받아오도록 처리했다.
+  const back = useCallback(() => {
+    dispatch(goBack());
+  }, [dispatch]);
+  const editBook = useCallback(
+    (id) => {
+      dispatch(push(`/edit/${id}`));
+    },
+    [dispatch],
+  );
 
-  return <Detail book={null} logout={logout} />;
+  const { books } = useSelector((state: RootState) => state.books);
+  useEffect(() => {
+      if (books === null) {
+        dispatch(list());
+      }
+  }, [books, dispatch]);
+
+  const book = books && books.find((item) => String(item.bookId) === id);
+  return <Detail book={book} logout={logout} edit={editBook} goBack={back} />;
 };
 
 export default DetailContainer;
